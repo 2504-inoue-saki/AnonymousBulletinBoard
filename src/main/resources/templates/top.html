@@ -30,16 +30,35 @@
                 <input type="submit" value="削除">
             </form>
         </div>
-    </div>
+        <!-- コメントフォーム -->
+        <div class="comment-form">
+            <form th:action="@{/comment/{reportId}(reportId=${content.id})}" th:object="${commentForm}" method="post">
+                <div class="comment-area">
+                    <textarea th:field="*{comment}" size="20" maxlength="200"></textarea><br/>
+                    <input type="submit" value="コメント"/>
+                </div>
+            </form>
+        </div>
+        <!-- コメントボタン -->
+        <div class="comment-button">
+            <form th:action="@{/comment/{id}}" th:method="get">
+                <input type="submit" value="コメント">
+            </form>
+        </div>
 
-    <!-- コメントフォーム -->
-    <div class="comment-form">
-        <form th:action="@{/comment/{report_id}(report_id=${content.id})}" th:object="${commentForm}" method="post">
-            <div class="comment-area">
-                <textarea th:field="*{comments}" size="20" maxlength="200"></textarea><br/>
-                <input type="submit" value="コメント"/>
-            </div>
-        </form>
+        <!-- コメント編集ボタン -->
+<!--        <div class="edit-button">-->
+<!--            <a th:href="@{/edit-comment/{id}(id=${comment.id})}">-->
+<!--            <input type="button" value="編集">-->
+<!--            </a>- -->
+<!--        </div>-->
+    </div>
+    <!--           <div class="delete-button">-->
+<!--                <form th:action="@{/delete-comment/{id}(id=${comment.id})}" th:method="delete">-->
+<!--                    <input type="submit" value="削除">-->
+<!--                </form>-->
+<!--            </div>-->
+        </div>
     </div>
 </div>
 </body>

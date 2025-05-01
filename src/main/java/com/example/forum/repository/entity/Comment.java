@@ -13,8 +13,8 @@ public class Comment {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column
-    private int report_id;
+    @Column(name = "id_report")
+    private int reportId;
     @Column
     private String comments;
 }
