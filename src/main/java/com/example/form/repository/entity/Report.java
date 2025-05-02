@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Timestamp;
+
 @Entity
 @Table(name = "report")
 @Getter
@@ -15,4 +17,6 @@ public class Report {
     private int id;
     @Column
     private String content;
+//    @Column
+//    private Timestamp updatedTime;
 }

@@ -19,8 +19,8 @@ public class CommentService {
      */
     public List<CommentForm> findAllComment() {
         List<Comment> results = commentRepository.findAll();
-        List<CommentForm> Comments = setCommentForm(results);
-        return Comments;
+        List<CommentForm> comments = setCommentForm(results);
+        return comments;
     }
 
     /*

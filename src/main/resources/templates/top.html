@@ -20,9 +20,9 @@
         <div class="text">
             投稿 : <span th:text="${content.content}"/>
         </div>
-        <div class = "edit-button">
+        <div class="edit-button">
             <a th:href="@{/edit/{id}(id=${content.id})}">
-                <input type="submit" value="編集">
+                <input type="button" value="編集">
             </a>
         </div>
         <div class = "delete-button">
@@ -32,20 +32,23 @@
         </div>
         <!-- コメントフォーム -->
         <div class="comment-form">
-            <form th:action="@{/comment/{reportId}(reportId=${content.id})}" th:object="${commentForm}" method="post">
-                <div class="comment-area">
-                    <textarea th:field="*{comment}" size="20" maxlength="200"></textarea><br/>
-                    <input type="submit" value="コメント"/>
+            <!-- PostMappingの"/comment/reportId"の処理に飛ぶ -->
+            <form th:object=${"commentFormModel"} th:action="@{/comment/{reportId}(reportId=${content.id})}" method="post" >
+                <div class="form-area">
+                    <label>コメント</label>
+                    <textarea class="tweet-box" size="20" maxlength="200" /></textarea><br/>
+                    <!-- コメントボタン -->
+                    <div class="comment-button">
+                        <input type="submit" value="コメント" />
+                    </div>
+                </div>
+                <!-- コメント内容 -->
+                <div class="each-comment" th:each="comment : ${comment}">
+                    <div class="text">
+                        コメント : <span th:text="${comment.comment}"/>
+                    </div>
                 </div>
             </form>
-        </div>
-        <!-- コメントボタン -->
-        <div class="comment-button">
-            <form th:action="@{/comment/{id}}" th:method="get">
-                <input type="submit" value="コメント">
-            </form>
-        </div>
-
         <!-- コメント編集ボタン -->
 <!--        <div class="edit-button">-->
 <!--            <a th:href="@{/edit-comment/{id}(id=${comment.id})}">-->
