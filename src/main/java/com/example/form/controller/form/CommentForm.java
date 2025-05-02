@@ -1,6 +1,5 @@
-package com.example.forum.controller.form;
+package com.example.form.controller.form;
 
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 

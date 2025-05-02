@@ -1,4 +1,4 @@
-package com.example.forum.repository.entity;
+package com.example.form.repository.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

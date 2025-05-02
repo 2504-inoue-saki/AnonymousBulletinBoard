@@ -1,9 +1,9 @@
-package com.example.forum.controller;
+package com.example.form.controller;
 
-import com.example.forum.controller.form.CommentForm;
-import com.example.forum.controller.form.ReportForm;
-import com.example.forum.service.ReportService;
-import com.example.forum.service.CommentService;
+import com.example.form.controller.form.CommentForm;
+import com.example.form.controller.form.ReportForm;
+import com.example.form.service.ReportService;
+import com.example.form.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;

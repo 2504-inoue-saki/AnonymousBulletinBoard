@@ -1,6 +1,6 @@
-package com.example.forum.repository;
+package com.example.form.repository;
 
-import com.example.forum.repository.entity.Report;
+import com.example.form.repository.entity.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
