@@ -13,7 +13,8 @@
   <form th:action="@{/update/{id}(id=${formModel.id})}" th:object="${formModel}" th:method="put">
     <div class="form-area">
       <label>投稿内容</label>
-      <textarea class="tweet-box" name="content" th:field="*{content}" size="20" maxlength="200" /></textarea><br/>
+      <textarea class="tweet-box" name="content" th:field="*{content}" size="20" maxlength="200"></textarea>
+      <br/>
       <input type="submit" value="更新"/>
     </div>
   </form>

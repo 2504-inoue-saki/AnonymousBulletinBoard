@@ -20,6 +20,8 @@
         <div class="text">
             投稿 : <span th:text="${content.content}"/>
         </div>
+
+        <!-- 投稿の編集・削除ボタン -->
         <div class="edit-button">
             <a th:href="@{/edit/{id}(id=${content.id})}">
                 <input type="button" value="編集">
@@ -30,37 +32,37 @@
                 <input type="submit" value="削除">
             </form>
         </div>
+
         <!-- コメントフォーム -->
-        <div class="comment-form">
-            <!-- PostMappingの"/comment/reportId"の処理に飛ぶ -->
-            <form th:object=${"commentFormModel"} th:action="@{/comment/{reportId}(reportId=${content.id})}" method="post" >
+        <!-- PostMappingの"/comment/reportId"の処理に飛ぶ -->
+        <form th:object="${commentFormMap[content.id]}" th:action="@{/comment/{reportId}(reportId=${content.id})}" method="post" >
+            <div class="comment-form">
                 <div class="form-area">
                     <label>コメント</label>
-                    <textarea class="tweet-box" size="20" maxlength="200" /></textarea><br/>
+                    <textarea class="tweet-box" size="20" maxlength="200"></textarea><br/>
                     <!-- コメントボタン -->
                     <div class="comment-button">
                         <input type="submit" value="コメント" />
                     </div>
                 </div>
-                <!-- コメント内容 -->
-                <div class="each-comment" th:each="comment : ${comment}">
-                    <div class="text">
-                        コメント : <span th:text="${comment.comment}"/>
-                    </div>
-                </div>
-            </form>
-        <!-- コメント編集ボタン -->
-<!--        <div class="edit-button">-->
-<!--            <a th:href="@{/edit-comment/{id}(id=${comment.id})}">-->
-<!--            <input type="button" value="編集">-->
-<!--            </a>- -->
-<!--        </div>-->
-    </div>
-    <!--           <div class="delete-button">-->
-<!--                <form th:action="@{/delete-comment/{id}(id=${comment.id})}" th:method="delete">-->
-<!--                    <input type="submit" value="削除">-->
-<!--                </form>-->
-<!--            </div>-->
+            </div>
+        </form>
+        <!-- コメント内容 -->
+        <div class="each-comment" th:each="comment : ${commentMap[content.id]}">
+            <div class="text">
+                コメント : <span th:text="${comment.comment}"></span></div>
+
+            <!-- コメントの編集・削除ボタン -->
+            <div class="edit-button">
+                <a th:href="@{/edit/comment/{id}(id=${comment.id})}">
+                    <input type="button" value="編集">
+                </a>
+            </div>
+            <div class="delete-button">
+                <form th:action="@{/delete/comment/{id}(id=${comment.id})}" th:method="delete">
+                    <input type="submit" value="削除">
+                </form>
+            </div>
         </div>
     </div>
 </div>

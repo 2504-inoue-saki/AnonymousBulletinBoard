@@ -9,7 +9,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class FormController {
@@ -25,23 +29,26 @@ public class FormController {
     @GetMapping
     public ModelAndView top() {
         ModelAndView mav = new ModelAndView();
-        // 画面遷移先を指定
         mav.setViewName("/top");
 
-        // 投稿を全件取得
-        List<ReportForm> contentData = reportService.findAllReport();
+        // 投稿とコメントを全件取得
+        List<ReportForm> reportList = reportService.findAllReport();
+        List<CommentForm> commentList = commentService.findAllComment();
 
-        // commentForm用の空のentityを準備
-        CommentForm commentForm = new CommentForm();
-        // 準備した空のFormを保管
-        mav.addObject("commentForm", commentForm);
-        // コメント全権取得
-        List<CommentForm> commentDate = commentService.findAllComment();
-        // コメントデータオブジェクトを保管
-        mav.addObject("comments", commentDate);
+        Map<Integer, List<CommentForm>> commentMap = commentList.stream()
+                .collect(Collectors.groupingBy(CommentForm::getReportId));
+        mav.addObject("commentMap", commentMap);
+        mav.addObject("comments", commentList);
 
-        // 投稿データオブジェクトを保管
-        mav.addObject("contents", contentData);
+        Map<Integer, CommentForm> commentFormMap = new HashMap<>();
+        for (ReportForm report : reportList) {
+            CommentForm form = new CommentForm();
+            form.setReportId(report.getId());
+            commentFormMap.put(report.getId(), form);
+        }
+        mav.addObject("commentFormMap", commentFormMap);
+
+        mav.addObject("contents", reportList); // ← 重複せず1回だけでOK
         return mav;
     }
 
@@ -113,8 +120,9 @@ public class FormController {
      */
     @PostMapping("/comment/{reportId}")
     public ModelAndView addComment(@PathVariable Integer reportId,
-                                   @ModelAttribute("commentFormModel") CommentForm commentForm){
+                                   @ModelAttribute CommentForm commentForm){
         commentForm.setReportId(reportId);
+        commentForm.setUpdatedDate(LocalDateTime.now());
         // 投稿をテーブルに格納
         commentService.saveComment(commentForm);
         // rootへリダイレクト
@@ -122,7 +130,7 @@ public class FormController {
     }
 
     /*
-     * コメント編集処理
+     * コメント編集画面遷移処理
      */
     @GetMapping("/comment/{id}")
     public ModelAndView editComment(@PathVariable Integer id) {
@@ -132,15 +140,33 @@ public class FormController {
         // 準備した空のFormを保管
         mav.addObject("commentFormModel", commentForm);
 
-        //コメント対象の投稿を取得
-        // 取得したコメント対象の投稿を保管
-        ReportForm content = reportService.editReport(id);
-        mav.addObject("content", content);
-
         // 画面遷移先を指定
         mav.setViewName("/comment");
 
         return mav;
     }
 
+    /*
+     * コメント編集処理
+     */
+    @PutMapping("/updateComment/{id}")
+    public ModelAndView updateContent(@PathVariable Integer id,
+                                      @ModelAttribute("formModel") CommentForm comment) {
+        // UrlParameterのidを更新するentityにセット
+        comment.setId(id);
+        // 編集した投稿を更新
+        commentService.saveComment(comment);
+        // rootへリダイレクト
+        return new ModelAndView("redirect:/");
+    }
+
+    /*
+     * 投稿削除処理
+     */
+    @DeleteMapping("/deleteComment/{id}")
+    public ModelAndView deleteComment(@PathVariable Integer id){
+        commentService.deleteComment(id);
+        // rootへリダイレクト
+        return new ModelAndView("redirect:/");
+    }
 }

@@ -44,7 +44,7 @@ public class CommentService {
             Comment result = results.get(i);
             comment.setId(result.getId());
             comment.setReportId(result.getReportId());
-            comment.setComments(result.getComments());
+            comment.setComment(result.getComments());
             comments.add(comment);
         }
         return comments;
@@ -65,14 +65,14 @@ public class CommentService {
         Comment comment = new Comment();
         comment.setId(reqComment.getId());
         comment.setReportId(reqComment.getReportId());
-        comment.setComments(reqComment.getComments());
+        comment.setComments(reqComment.getComment());
         return comment;
     }
 
     /*
      * レコード削除
      */
-    public void deleteComments(Integer id) {
+    public void deleteComment(Integer id) {
         commentRepository.deleteById(id);
     }
 }
