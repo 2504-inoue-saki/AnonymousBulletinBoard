@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +28,13 @@ public class FormController {
      * すべての投稿を更新日時の降順で取得して表示
      */
     @GetMapping
-    public ModelAndView top() {
+    public ModelAndView top(@RequestParam(name = "start", required = false) String start,
+                            @RequestParam(name = "end", required = false) String end) {
         ModelAndView mav = new ModelAndView();
         mav.setViewName("/top");
 
         // 投稿とコメントを全件取得
-        List<ReportForm> reportList = reportService.findAllReport();
+        List<ReportForm> reportList = reportService.findAllReport(start, end);
         List<CommentForm> commentList = commentService.findAllComment();
 
         Map<Integer, List<CommentForm>> commentMap = commentList.stream()
@@ -48,7 +50,7 @@ public class FormController {
         }
         mav.addObject("commentFormMap", commentFormMap);
 
-        mav.addObject("contents", reportList); // ← 重複せず1回だけでOK
+        mav.addObject("contents", reportList);
         return mav;
     }
 
@@ -99,11 +101,14 @@ public class FormController {
                                       @ModelAttribute("formModel") ReportForm report) {
         // UrlParameterのidを更新するentityにセット
         report.setId(id);
+        // 現在時刻をentityにセット
+        report.setUpdatedDate(new Date());
         // 編集した投稿を更新
         reportService.saveReport(report);
         // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
+
 
     /*
      * 投稿削除処理
@@ -141,7 +146,7 @@ public class FormController {
         mav.addObject("commentFormModel", commentForm);
 
         // 画面遷移先を指定
-        mav.setViewName("/comment");
+        mav.setViewName("/editComment");
 
         return mav;
     }
@@ -149,7 +154,7 @@ public class FormController {
     /*
      * コメント編集処理
      */
-    @PutMapping("/updateComment/{id}")
+    @PutMapping("/update/comment/{id}")
     public ModelAndView updateContent(@PathVariable Integer id,
                                       @ModelAttribute("formModel") CommentForm comment) {
         // UrlParameterのidを更新するentityにセット
@@ -163,7 +168,7 @@ public class FormController {
     /*
      * 投稿削除処理
      */
-    @DeleteMapping("/deleteComment/{id}")
+    @DeleteMapping("/delete/comment/{id}")
     public ModelAndView deleteComment(@PathVariable Integer id){
         commentService.deleteComment(id);
         // rootへリダイレクト

@@ -13,6 +13,16 @@
     <a href="/new">
         <button class="new-button" type="button">新規投稿</button>
     </a>
+
+    <!-- 絞り込み機能 -->
+    <div>
+        <form action="/">
+            日付：<input type="date" name="start">
+            ～　<input type="date" name="end">
+            <input type="submit" value="絞り込み">
+        </form>
+    </div>
+    <br>
     <div class="message-icon" th:each="content : ${contents}">
         <div>
             ID : <span th:text="${content.id}"/>
