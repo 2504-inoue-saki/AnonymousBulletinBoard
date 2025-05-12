@@ -4,8 +4,12 @@ import com.example.form.controller.form.CommentForm;
 import com.example.form.controller.form.ReportForm;
 import com.example.form.service.ReportService;
 import com.example.form.service.CommentService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -29,9 +33,19 @@ public class FormController {
      */
     @GetMapping
     public ModelAndView top(@RequestParam(name = "start", required = false) String start,
-                            @RequestParam(name = "end", required = false) String end) {
+                            @RequestParam(name = "end", required = false) String end,
+                            HttpSession session) {
         ModelAndView mav = new ModelAndView();
         mav.setViewName("/top");
+
+//        String errorMessage = (String) session.getAttribute("errorMessage");
+//        if (errorMessage != null) {
+//            Integer sessionId = (Integer) session.getAttribute("sessionId");
+//            mav.addObject("errorMessage", errorMessage);
+//            mav.addObject("sessionId", sessionId);
+//            session.removeAttribute("errorMessage");
+//            session.removeAttribute("sessionId");
+//        }
 
         // 投稿とコメントを全件取得
         List<ReportForm> reportList = reportService.findAllReport(start, end);
@@ -59,8 +73,16 @@ public class FormController {
      * /newに遷移
      */
     @GetMapping("/new")
-    public ModelAndView newContent() {
+    public ModelAndView newContent(HttpSession session) {
         ModelAndView mav = new ModelAndView();
+
+        // セッションからエラーメッセージを取得
+        String errorMessage = (String) session.getAttribute("errorMessage");
+        if (errorMessage != null) {
+            mav.addObject("errorMessage", errorMessage);
+            session.removeAttribute("errorMessage");
+        }
+
         // form用の空のentityを準備
         ReportForm reportForm = new ReportForm();
         // 画面遷移先を指定
@@ -74,7 +96,16 @@ public class FormController {
      * 新規投稿処理
      */
     @PostMapping("/add")
-    public ModelAndView addContent(@ModelAttribute("formModel") ReportForm reportForm){
+    public ModelAndView addContent(@ModelAttribute("formModel") @Validated ReportForm reportForm,
+                                   BindingResult result, HttpSession session){
+        // バリデーションの確認
+        if (result.hasErrors()) {
+            for (FieldError error : result.getFieldErrors()) {
+                String errorMessage = error.getDefaultMessage();
+                session.setAttribute("errorMessage", errorMessage);
+            }
+            return new ModelAndView("redirect:/new");
+        }
         // 投稿をテーブルに格納
         reportService.saveReport(reportForm);
         // rootへリダイレクト
@@ -82,7 +113,7 @@ public class FormController {
     }
 
     /*
-     * 投稿編集処理
+     * 投稿編集画面への遷移処理
      */
     @GetMapping("/edit/{id}")
     public ModelAndView editContent(@PathVariable Integer id) {
@@ -96,6 +127,9 @@ public class FormController {
         return mav;
     }
 
+    /*
+     * 投稿編集画面での更新ボタン押下処理
+     */
     @PutMapping("/update/{id}")
     public ModelAndView updateContent(@PathVariable Integer id,
                                       @ModelAttribute("formModel") ReportForm report) {
@@ -127,7 +161,12 @@ public class FormController {
     public ModelAndView addComment(@PathVariable Integer reportId,
                                    @ModelAttribute CommentForm commentForm){
         commentForm.setReportId(reportId);
-        commentForm.setUpdatedDate(LocalDateTime.now());
+        commentForm.setUpdatedDate(new Date());
+
+//        // ReportのupdatedDateも更新
+//        report.setUpdatedDate(new Date());
+//        reportRepository.save(report);
+
         // 投稿をテーブルに格納
         commentService.saveComment(commentForm);
         // rootへリダイレクト
@@ -137,7 +176,7 @@ public class FormController {
     /*
      * コメント編集画面遷移処理
      */
-    @GetMapping("/comment/{id}")
+    @GetMapping("/edit/comment/{id}")
     public ModelAndView editComment(@PathVariable Integer id) {
         ModelAndView mav = new ModelAndView();
         // form用の空のentityを準備
@@ -146,7 +185,7 @@ public class FormController {
         mav.addObject("commentFormModel", commentForm);
 
         // 画面遷移先を指定
-        mav.setViewName("/editComment");
+        mav.setViewName("/edit/comment");
 
         return mav;
     }

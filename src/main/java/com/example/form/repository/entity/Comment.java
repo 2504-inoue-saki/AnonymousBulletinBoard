@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.Date;
 
 @Entity
 @Table(name = "comment_table")
@@ -15,10 +16,13 @@ public class Comment {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column(name = "id_report")
     private int reportId;
+
     @Column
     private String comments;
-//    @Column
-//    private Timestamp updateTime;
+
+    @Column(name = "updated_date", insertable = false, updatable = true)
+    private Date updatedDate;
 }

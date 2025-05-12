@@ -15,8 +15,15 @@ public class Report {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column
     private String content;
-    @Column(name = "updated_date", insertable = false, updatable = true)
+
+    @Column(name = "updated_date")
     private Date updatedDate;
+    @PrePersist
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedDate = new Date();
+    }
 }

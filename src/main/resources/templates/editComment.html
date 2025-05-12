@@ -10,19 +10,18 @@
   <h2>コメント編集</h2>
 </div>
 <div class="main-contents">
-  <form th:action="@{/update/comment/{id}(id=${commentFormModel.id})}" th:object="${formModel}" th:method="put">
+  <form th:action="@{/update/comment/{id}(id=${commentFormModel.id})}" th:object="${commentForm}" th:method="put">
     <div class="form-area">
       <label>投稿内容</label>
-      <input th:field="*{reportId}" type="hidden">
-      <textarea class="tweet-box" th:field="*{comment}" size="20" maxlength="200"></textarea>
+      <textarea class="tweet-box" name="content" th:field="*{comment}" size="20" maxlength="200"></textarea>
       <br/>
-      <input type="submit" value="更新" />
+      <input type="submit" value="更新"/>
     </div>
   </form>
 </div>
 <div class="footer-contents">
   <form action="/">
-    <input type="submit" value="戻る" />
+    <input type="submit" value="戻る"/>
   </form>
 </div>
 </body>

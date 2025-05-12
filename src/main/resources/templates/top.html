@@ -30,7 +30,10 @@
         <div class="text">
             投稿 : <span th:text="${content.content}"/>
         </div>
-
+        <div class="text">
+            更新日時 : <span th:text="${#dates.format(content.updatedDate, 'yyyy-MM-dd HH:mm:ss')}"/>
+        </div>
+        <br>
         <!-- 投稿の編集・削除ボタン -->
         <div class="edit-button">
             <a th:href="@{/edit/{id}(id=${content.id})}">
@@ -60,7 +63,9 @@
         <!-- コメント内容 -->
         <div class="each-comment" th:each="comment : ${commentMap[content.id]}">
             <div class="text">
-                コメント : <span th:text="${comment.comment}"></span></div>
+                コメント : <span th:text="${comment.comment}"></span>
+            </div>
+            <br>
 
             <!-- コメントの編集・削除ボタン -->
             <div class="edit-button">
