@@ -3,6 +3,7 @@ package com.example.form.service;
 import com.example.form.controller.form.CommentForm;
 import com.example.form.repository.CommentRepository;
 import com.example.form.repository.entity.Comment;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +54,7 @@ public class CommentService {
     /*
      * レコード追加
      */
+    @Transactional
     public void saveComment(CommentForm reqComment) {
         Comment saveComment = setCommentEntity(reqComment);
         commentRepository.save(saveComment);
@@ -66,6 +68,7 @@ public class CommentService {
         comment.setId(reqComment.getId());
         comment.setReportId(reqComment.getReportId());
         comment.setComments(reqComment.getComment());
+        comment.setUpdatedDate(reqComment.getUpdatedDate());
         return comment;
     }
 

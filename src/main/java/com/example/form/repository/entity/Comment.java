@@ -23,6 +23,6 @@ public class Comment {
     @Column
     private String comments;
 
-    @Column(name = "updated_date", insertable = false, updatable = true)
+    @Column(name = "updated_date", updatable = true)
     private Date updatedDate;
 }

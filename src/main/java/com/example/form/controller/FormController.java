@@ -38,15 +38,6 @@ public class FormController {
         ModelAndView mav = new ModelAndView();
         mav.setViewName("/top");
 
-//        String errorMessage = (String) session.getAttribute("errorMessage");
-//        if (errorMessage != null) {
-//            Integer sessionId = (Integer) session.getAttribute("sessionId");
-//            mav.addObject("errorMessage", errorMessage);
-//            mav.addObject("sessionId", sessionId);
-//            session.removeAttribute("errorMessage");
-//            session.removeAttribute("sessionId");
-//        }
-
         // 投稿とコメントを全件取得
         List<ReportForm> reportList = reportService.findAllReport(start, end);
         List<CommentForm> commentList = commentService.findAllComment();
@@ -161,12 +152,11 @@ public class FormController {
     public ModelAndView addComment(@PathVariable Integer reportId,
                                    @ModelAttribute CommentForm commentForm){
         commentForm.setReportId(reportId);
+        commentForm.setComment(commentForm.getComment()); // ★ 追加 (念のため)
         commentForm.setUpdatedDate(new Date());
 
-//        // ReportのupdatedDateも更新
-//        report.setUpdatedDate(new Date());
-//        reportRepository.save(report);
-
+        // ★ コメント保存後に、関連するレポートの更新日時を更新する処理を追加
+        reportService.updateReportUpdatedDate(reportId, new Date());
         // 投稿をテーブルに格納
         commentService.saveComment(commentForm);
         // rootへリダイレクト

@@ -5,6 +5,7 @@ import com.example.form.controller.form.ReportForm;
 import com.example.form.repository.ReportRepository;
 import com.example.form.repository.entity.Report;
 import io.micrometer.common.util.StringUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,7 @@ public class ReportService {
                 end = end + " 23:59:59";
                 endDate = dateFormat.parse(end);
             }
-            List<Report> results = reportRepository.findByUpdatedDateBetweenOrderByIdDesc(startDate, endDate);
+            List<Report> results = reportRepository.findAllByOrderByUpdatedDateDesc();
             List<ReportForm> reports = setReportForm(results);
             return reports;
         } catch (ParseException e) {
@@ -100,5 +101,13 @@ public class ReportService {
      */
     public void deleteReport(Integer id) {
         reportRepository.deleteById(id);
+    }
+    @Transactional
+    public void updateReportUpdatedDate(Integer reportId, Date updatedDate) {
+        Report report = reportRepository.findById(reportId).orElse(null);
+        if (report != null) {
+            report.setUpdatedDate(updatedDate);
+            reportRepository.save(report);
+        }
     }
 }
