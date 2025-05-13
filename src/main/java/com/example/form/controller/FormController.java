@@ -5,6 +5,7 @@ import com.example.form.controller.form.ReportForm;
 import com.example.form.service.ReportService;
 import com.example.form.service.CommentService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -13,7 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +25,33 @@ public class FormController {
     @Autowired
     ReportService reportService;
     @Autowired
-    CommentService commentService;;
+    CommentService commentService;
+
+    // セッションからエラーメッセージを取得する
+    private ModelAndView addErrorMessageFromSession(ModelAndView mav, HttpSession session) {
+        String errorMessage = (String) session.getAttribute("errorMessage");
+        if (errorMessage != null) {
+            Integer sessionId = (Integer) session.getAttribute("sessionId");
+            mav.addObject("errorMessage", errorMessage);
+            mav.addObject("sessionId", sessionId);
+            session.removeAttribute("errorMessage");
+            session.removeAttribute("sessionId");
+        }
+        return mav;
+    }
+
+    // セッションにエラーメッセージを格納する
+    private void setErrorMessageToSession(HttpSession session, BindingResult result, Integer sessionId) {
+        if (result.hasErrors()) {
+            for (FieldError error : result.getFieldErrors()) {
+                session.setAttribute("errorMessage", error.getDefaultMessage());
+                break; // 最初のエラーメッセージのみ保持
+            }
+            if (sessionId != null) {
+                session.setAttribute("sessionId", sessionId);
+            }
+        }
+    }
 
     /*
      * 投稿内容表示処理
@@ -35,26 +61,17 @@ public class FormController {
     public ModelAndView top(@RequestParam(name = "start", required = false) String start,
                             @RequestParam(name = "end", required = false) String end,
                             HttpSession session) {
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("/top");
+        ModelAndView mav = new ModelAndView("/top");
+        mav = addErrorMessageFromSession(mav, session);
 
         // 投稿とコメントを全件取得
         List<ReportForm> reportList = reportService.findAllReport(start, end);
         List<CommentForm> commentList = commentService.findAllComment();
 
-        Map<Integer, List<CommentForm>> commentMap = commentList.stream()
-                .collect(Collectors.groupingBy(CommentForm::getReportId));
-        mav.addObject("commentMap", commentMap);
-        mav.addObject("comments", commentList);
-
-        Map<Integer, CommentForm> commentFormMap = new HashMap<>();
-        for (ReportForm report : reportList) {
-            CommentForm form = new CommentForm();
-            form.setReportId(report.getId());
-            commentFormMap.put(report.getId(), form);
-        }
-        mav.addObject("commentFormMap", commentFormMap);
-
+        mav.addObject("commentMap", commentList.stream()
+                .collect(Collectors.groupingBy(CommentForm::getReportId)));
+        mav.addObject("commentFormMap", reportList.stream()
+                .collect(Collectors.toMap(ReportForm::getId, report -> new CommentForm())));
         mav.addObject("contents", reportList);
         return mav;
     }
@@ -65,21 +82,8 @@ public class FormController {
      */
     @GetMapping("/new")
     public ModelAndView newContent(HttpSession session) {
-        ModelAndView mav = new ModelAndView();
-
-        // セッションからエラーメッセージを取得
-        String errorMessage = (String) session.getAttribute("errorMessage");
-        if (errorMessage != null) {
-            mav.addObject("errorMessage", errorMessage);
-            session.removeAttribute("errorMessage");
-        }
-
-        // form用の空のentityを準備
-        ReportForm reportForm = new ReportForm();
-        // 画面遷移先を指定
-        mav.setViewName("/new");
-        // 準備した空のFormを保管
-        mav.addObject("formModel", reportForm);
+        ModelAndView mav = new ModelAndView("/new", "formModel", new ReportForm());
+        mav = addErrorMessageFromSession(mav, session);
         return mav;
     }
 
@@ -87,19 +91,14 @@ public class FormController {
      * 新規投稿処理
      */
     @PostMapping("/add")
-    public ModelAndView addContent(@ModelAttribute("formModel") @Validated ReportForm reportForm,
-                                   BindingResult result, HttpSession session){
-        // バリデーションの確認
+    public ModelAndView addContent(@Valid @ModelAttribute("formModel") ReportForm reportForm,
+                                   BindingResult result,
+                                   HttpSession session) {
         if (result.hasErrors()) {
-            for (FieldError error : result.getFieldErrors()) {
-                String errorMessage = error.getDefaultMessage();
-                session.setAttribute("errorMessage", errorMessage);
-            }
+            setErrorMessageToSession(session, result, null);
             return new ModelAndView("redirect:/new");
         }
-        // 投稿をテーブルに格納
         reportService.saveReport(reportForm);
-        // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
 
@@ -107,14 +106,10 @@ public class FormController {
      * 投稿編集画面への遷移処理
      */
     @GetMapping("/edit/{id}")
-    public ModelAndView editContent(@PathVariable Integer id) {
-        ModelAndView mav = new ModelAndView();
-        // 編集する投稿を取得
-        ReportForm report = reportService.editReport(id);
-        // 編集する投稿をセット
-        mav.addObject("formModel", report);
-        // 画面遷移先を指定
-        mav.setViewName("/edit");
+    public ModelAndView editContent(@PathVariable Integer id,
+                                    HttpSession session) {
+        ModelAndView mav = new ModelAndView("/edit", "formModel", reportService.editReport(id));
+        mav = addErrorMessageFromSession(mav, session);
         return mav;
     }
 
@@ -123,23 +118,25 @@ public class FormController {
      */
     @PutMapping("/update/{id}")
     public ModelAndView updateContent(@PathVariable Integer id,
-                                      @ModelAttribute("formModel") ReportForm report) {
-        // UrlParameterのidを更新するentityにセット
+                                      @ModelAttribute("formModel")
+                                      @Valid ReportForm report,
+                                      BindingResult result,
+                                      HttpSession session) {
+        if (result.hasErrors()) {
+            setErrorMessageToSession(session, result, id);
+            return new ModelAndView("redirect:/edit/" + id);
+        }
         report.setId(id);
-        // 現在時刻をentityにセット
         report.setUpdatedDate(new Date());
-        // 編集した投稿を更新
         reportService.saveReport(report);
-        // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
-
 
     /*
      * 投稿削除処理
      */
     @DeleteMapping("/delete/{id}")
-    public ModelAndView deleteContent(@PathVariable Integer id){
+    public ModelAndView deleteContent(@PathVariable Integer id) {
         reportService.deleteReport(id);
         // rootへリダイレクト
         return new ModelAndView("redirect:/");
@@ -150,16 +147,17 @@ public class FormController {
      */
     @PostMapping("/comment/{reportId}")
     public ModelAndView addComment(@PathVariable Integer reportId,
-                                   @ModelAttribute CommentForm commentForm){
+                                   @Valid @ModelAttribute("commentForm") CommentForm commentForm,
+                                   BindingResult result,
+                                   HttpSession session) {
+        if (result.hasErrors()) {
+            setErrorMessageToSession(session, result, reportId);
+            return new ModelAndView("redirect:/");
+        }
         commentForm.setReportId(reportId);
-        commentForm.setComment(commentForm.getComment()); // ★ 追加 (念のため)
         commentForm.setUpdatedDate(new Date());
-
-        // ★ コメント保存後に、関連するレポートの更新日時を更新する処理を追加
         reportService.updateReportUpdatedDate(reportId, new Date());
-        // 投稿をテーブルに格納
         commentService.saveComment(commentForm);
-        // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
 
@@ -167,16 +165,10 @@ public class FormController {
      * コメント編集画面遷移処理
      */
     @GetMapping("/edit/comment/{id}")
-    public ModelAndView editComment(@PathVariable Integer id) {
-        ModelAndView mav = new ModelAndView();
-        // form用の空のentityを準備
-        CommentForm commentForm = new CommentForm();
-        // 準備した空のFormを保管
-        mav.addObject("commentFormModel", commentForm);
-
-        // 画面遷移先を指定
-        mav.setViewName("/edit/comment");
-
+    public ModelAndView editComment(@PathVariable Integer id,
+                                    HttpSession session) {
+        ModelAndView mav = new ModelAndView("/editComment", "commentFormModel", commentService.editComment(id));
+        mav = addErrorMessageFromSession(mav, session);
         return mav;
     }
 
@@ -184,13 +176,16 @@ public class FormController {
      * コメント編集処理
      */
     @PutMapping("/update/comment/{id}")
-    public ModelAndView updateContent(@PathVariable Integer id,
-                                      @ModelAttribute("formModel") CommentForm comment) {
-        // UrlParameterのidを更新するentityにセット
+    public ModelAndView updateComment(@PathVariable Integer id,
+                                      @Valid @ModelAttribute("commentFormModel") CommentForm comment,
+                                      BindingResult result,
+                                      HttpSession session) {
+        if (result.hasErrors()) {
+            setErrorMessageToSession(session, result, null); // sessionId は不要
+            return new ModelAndView("redirect:/edit/comment/" + id);
+        }
         comment.setId(id);
-        // 編集した投稿を更新
         commentService.saveComment(comment);
-        // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
 
@@ -198,7 +193,7 @@ public class FormController {
      * 投稿削除処理
      */
     @DeleteMapping("/delete/comment/{id}")
-    public ModelAndView deleteComment(@PathVariable Integer id){
+    public ModelAndView deleteComment(@PathVariable Integer id) {
         commentService.deleteComment(id);
         // rootへリダイレクト
         return new ModelAndView("redirect:/");

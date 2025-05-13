@@ -46,6 +46,10 @@
             </form>
         </div>
 
+        <!-- エラーメッセージ表示 -->
+        <div th:if="${errorMessage} and ${content.id} == ${sessionId}" style="color: red;">
+            <p th:text="${errorMessage}"></p>
+        </div>
         <!-- コメントフォーム -->
         <!-- PostMappingの"/comment/reportId"の処理に飛ぶ -->
         <form th:object="${commentFormMap[content.id]}" th:action="@{/comment/{reportId}(reportId=${content.id})}" method="post" >

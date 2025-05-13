@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
@@ -24,13 +25,11 @@ public class ReportService {
      * レコード全件取得処理
      */
     public List<ReportForm> findAllReport(String start, String end) {
-        Date endDate = new Date();
-        String date = "2020-01-01 00:00:00";
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = null;
+        Date endDate = null;
 
         try {
-            Date startDate = dateFormat.parse(date);
-
             if (!StringUtils.isBlank(start)) {
                 start = start + " 00:00:00";
                 startDate = dateFormat.parse(start);
@@ -39,14 +38,17 @@ public class ReportService {
                 end = end + " 23:59:59";
                 endDate = dateFormat.parse(end);
             }
-            List<Report> results = reportRepository.findAllByOrderByUpdatedDateDesc();
-            List<ReportForm> reports = setReportForm(results);
-            return reports;
+
+            List<Report> results;
+            if (startDate != null && endDate != null) {
+                results = reportRepository.findByUpdatedDateBetweenOrderByUpdatedDateDesc(startDate, endDate);
+            } else {
+                results = reportRepository.findAllByOrderByUpdatedDateDesc();
+            }
+            return setReportForm(results);
         } catch (ParseException e) {
             e.printStackTrace();
-            List<Report> results = reportRepository.findAll();
-            List<ReportForm> reports = setReportForm(results);
-            return reports;
+            return setReportForm(reportRepository.findAllByOrderByUpdatedDateDesc()); // パースエラー時も降順で取得
         }
     }
 
@@ -63,18 +65,14 @@ public class ReportService {
     /*
      * DBから取得したデータをFormに設定
      */
-    private List<ReportForm> setReportForm(List<Report> results) {
-        List<ReportForm> reports = new ArrayList<>();
-
-        for (int i = 0; i < results.size(); i++) {
-            ReportForm report = new ReportForm();
-            Report result = results.get(i);
-            report.setId(result.getId());
-            report.setContent(result.getContent());
-            report.setUpdatedDate(result.getUpdatedDate());
-            reports.add(report);
-        }
-        return reports;
+    private List<ReportForm> setReportForm(List<Report> reports) {
+        return reports.stream().map(report -> {
+            ReportForm form = new ReportForm();
+            form.setId(report.getId());
+            form.setContent(report.getContent());
+            form.setUpdatedDate(report.getUpdatedDate());
+            return form;
+        }).collect(Collectors.toList());
     }
 
     /*

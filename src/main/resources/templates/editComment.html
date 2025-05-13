@@ -9,12 +9,19 @@
 <div class="header-contents">
   <h2>コメント編集</h2>
 </div>
+
 <div class="main-contents">
-  <form th:action="@{/update/comment/{id}(id=${commentFormModel.id})}" th:object="${commentForm}" th:method="put">
+  <!-- エラーメッセージ表示 -->
+  <div th:if="${errorMessage}" style="color: red;">
+    <p th:text="${errorMessage}"></p>
+  </div>
+
+  <form th:action="@{/update/comment/{id}(id=${commentFormModel.id})}" th:object="${commentFormModel}" th:method="put">
     <div class="form-area">
-      <label>投稿内容</label>
+      <label>コメント内容</label>
       <textarea class="tweet-box" name="content" th:field="*{comment}" size="20" maxlength="200"></textarea>
       <br/>
+      <input type="hidden" th:field="*{reportId}">
       <input type="submit" value="更新"/>
     </div>
   </form>

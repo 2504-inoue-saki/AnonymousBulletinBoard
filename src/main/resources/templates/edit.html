@@ -9,7 +9,13 @@
 <div class="header-contents">
   <h2>編集</h2>
 </div>
+
 <div class="main-contents">
+  <!-- エラーメッセージ表示 -->
+  <div th:if="${errorMessage}" style="color: red;">
+    <p th:text="${errorMessage}"></p>
+  </div>
+
   <form th:action="@{/update/{id}(id=${formModel.id})}" th:object="${formModel}" th:method="put">
     <div class="form-area">
       <label>投稿内容</label>
