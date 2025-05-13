@@ -64,8 +64,15 @@ public class FormController {
         ModelAndView mav = new ModelAndView("/top");
         mav = addErrorMessageFromSession(mav, session);
 
-        // 投稿とコメントを全件取得
-        List<ReportForm> reportList = reportService.findAllReport(start, end);
+        // 投稿とコメントを取得
+        List<ReportForm> reportList;
+        if (start != null && end != null) {
+            // Date 型の引数を渡す
+            reportList = reportService.findAllReport(start, end);
+        } else {
+            // 引数なしで全件取得
+            reportList = reportService.findAllReport(null, null);
+        }
         List<CommentForm> commentList = commentService.findAllComment();
 
         mav.addObject("commentMap", commentList.stream()
@@ -185,6 +192,7 @@ public class FormController {
             return new ModelAndView("redirect:/edit/comment/" + id);
         }
         comment.setId(id);
+        comment.setUpdatedDate(new Date());
         commentService.saveComment(comment);
         return new ModelAndView("redirect:/");
     }

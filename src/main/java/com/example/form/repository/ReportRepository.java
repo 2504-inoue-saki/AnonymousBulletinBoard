@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
     List<Report> findByUpdatedDateBetweenOrderByUpdatedDateDesc(Date start, Date end);
-    List<Report> findAllByOrderByUpdatedDateDesc(); // ★ 追加
+    List<Report> findAllByOrderByUpdatedDateDesc();
 }

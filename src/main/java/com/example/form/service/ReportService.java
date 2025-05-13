@@ -48,7 +48,7 @@ public class ReportService {
             return setReportForm(results);
         } catch (ParseException e) {
             e.printStackTrace();
-            return setReportForm(reportRepository.findAllByOrderByUpdatedDateDesc()); // パースエラー時も降順で取得
+            return setReportForm(reportRepository.findAllByOrderByUpdatedDateDesc());
         }
     }
 
