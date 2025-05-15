@@ -19,8 +19,12 @@ public class Report {
     @Column
     private String content;
 
+    @Column(name = "created_date", insertable = true, updatable = false)
+    private Date createdDate;
+
     @Column(name = "updated_date")
     private Date updatedDate;
+
     @PrePersist
     @PreUpdate
     public void onUpdate() {

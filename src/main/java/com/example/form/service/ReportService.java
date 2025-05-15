@@ -70,6 +70,7 @@ public class ReportService {
             ReportForm form = new ReportForm();
             form.setId(report.getId());
             form.setContent(report.getContent());
+            form.setCreatedDate(report.getCreatedDate());
             form.setUpdatedDate(report.getUpdatedDate());
             return form;
         }).collect(Collectors.toList());
@@ -90,6 +91,7 @@ public class ReportService {
         Report report = new Report();
         report.setId(reqReport.getId());
         report.setContent(reqReport.getContent());
+        report.setCreatedDate(reqReport.getCreatedDate());
         report.setUpdatedDate(reqReport.getUpdatedDate());
         return report;
     }
